@@ -33,6 +33,7 @@ JLG_STATE_COLUMNS = """COT_Pay_JLG
                       JLG_Pay_SSA
                  """.split()
 
+pd.set_option('display.float_format', '{:.2f}'.format)
 
 selected_mnth = st.selectbox('Select the Month', (1, 2, 3, 4, 5, 6, 7, 8, 9))#('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September'))
 
@@ -68,6 +69,8 @@ table = pd.pivot_table(Account_Detail[Account_Detail['Month_Disbursement_Int'] =
 
 table['TotalCOTRepay'] = table[table.columns].sum(axis=1)
 
+table['TotalCOTRepay'] = table['TotalCOTRepay'].round(2)
+
 Cot_Repay_JLG = table.transpose()
 
 Account_Detail['Disbursement']= Account_Detail['LoanAmount'].astype(float)
@@ -78,11 +81,15 @@ table2['TotalDisbursement'] = table2[table2.columns].sum(axis=1)
 
 Disb_Table = table2.transpose()
 
-#print(disb_ratio)
-
 df_new = pd.concat([Cot_Repay_JLG, Disb_Table], join = 'inner', axis = 1)
 
 df_new['RepaymentPercent'] = Cot_Repay_JLG['COT_Pay_JLG']/Disb_Table['Disbursement'] * 100
+
+df_new.loc['Total'] = df_new.sum()
+
+df_new.loc['Total'].at['RepaymentPercent'] = df_new.loc['Total'].at['COT_Pay_JLG']/df_new.loc['Total'].at['Disbursement'] * 100
+
+df_new = df_new.astype('int64')
 
 st.table(df_new)
 
